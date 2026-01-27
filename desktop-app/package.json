@@ -1,5 +1,5 @@
 {
-  "name": "reelsmax",
+  "name": "reelsmaxing",
   "version": "1.0.0",
   "description": "Scroll Instagram Reels while AI generates, auto-pause when ready",
   "main": "main.js",
@@ -15,13 +15,13 @@
   },
   "build": {
     "appId": "com.reelsmax.app",
-    "productName": "ReelsMax",
+    "productName": "ReelsMaxing",
     "win": {
       "target": "portable",
       "signAndEditExecutable": false
     },
     "portable": {
-      "artifactName": "ReelsMax.exe"
+      "artifactName": "ReelsMaxing.exe"
     }
   }
 }

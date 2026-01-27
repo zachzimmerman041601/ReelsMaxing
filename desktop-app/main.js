@@ -10,7 +10,7 @@ function createWindow() {
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    title: 'ReelsMax',
+    title: 'ReelsMaxing',
     backgroundColor: '#1a1a2e',
     webPreferences: {
       nodeIntegration: false,
