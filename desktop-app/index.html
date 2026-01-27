@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+  <title>ReelsMax</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      -webkit-app-region: drag;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      font-size: 20px;
+    }
+
+    .title {
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      font-size: 13px;
+      -webkit-app-region: no-drag;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 10px #4ade80;
+      transition: all 0.3s;
+    }
+
+    .status-dot.generating {
+      background: #fbbf24;
+      box-shadow: 0 0 10px #fbbf24;
+      animation: pulse 1s infinite;
+    }
+
+    .status-dot.paused {
+      background: #f87171;
+      box-shadow: 0 0 10px #f87171;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .llm-selector {
+      -webkit-app-region: no-drag;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .llm-selector option {
+      background: #1a1a2e;
+      color: white;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel.llm {
+      flex: 1;
+      border-right: 2px solid #16213e;
+    }
+
+    .panel.reels {
+      width: 400px;
+      min-width: 320px;
+      max-width: 500px;
+      position: relative;
+    }
+
+    .panel-header {
+      background: #16213e;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #a0a0a0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    webview {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+    }
+
+    .pause-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      z-index: 100;
+      backdrop-filter: blur(5px);
+    }
+
+    .pause-overlay.visible {
+      display: flex;
+    }
+
+    .pause-overlay .icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .pause-overlay h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .pause-overlay p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .resize-handle {
+      width: 4px;
+      background: #16213e;
+      cursor: col-resize;
+      transition: background 0.2s;
+    }
+
+    .resize-handle:hover {
+      background: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <span class="logo">🎬</span>
+      <span class="title">ReelsMax</span>
+    </div>
+    <div class="status">
+      <select class="llm-selector" id="llmSelector">
+        <option value="https://chatgpt.com">ChatGPT</option>
+        <option value="https://claude.ai">Claude</option>
+        <option value="https://gemini.google.com">Gemini</option>
+      </select>
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Ready</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="panel llm">
+      <div class="panel-header">
+        <span>💬</span>
+        <span id="llmLabel">ChatGPT</span>
+      </div>
+      <webview
+        id="llmView"
+        src="https://chatgpt.com"
+        partition="persist:llm"
+      ></webview>
+    </div>
+
+    <div class="resize-handle" id="resizeHandle"></div>
+
+    <div class="panel reels" id="reelsPanel">
+      <div class="panel-header">
+        <span>📱</span>
+        <select class="llm-selector" id="socialSelector">
+          <option value="instagram">Instagram Reels</option>
+          <option value="tiktok">TikTok</option>
+          <option value="youtube">YouTube Shorts</option>
+          <option value="twitter">X (Twitter)</option>
+          <option value="reddit">Reddit</option>
+          <option value="snapchat">Snapchat Spotlight</option>
+          <option value="facebook">Facebook Reels</option>
+        </select>
+      </div>
+      <webview
+        id="reelsView"
+        src="https://www.instagram.com/reels/"
+        partition="persist:social"
+      ></webview>
+      <div class="pause-overlay" id="pauseOverlay">
+        <div class="icon">⏸️</div>
+        <h2>AI Response Ready!</h2>
+        <p>Read the response in the chat</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
