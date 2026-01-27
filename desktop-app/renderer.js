@@ -7,7 +7,6 @@ const statusDot = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
 const pauseOverlay = document.getElementById('pauseOverlay');
 const llmSelector = document.getElementById('llmSelector');
-const llmLabel = document.getElementById('llmLabel');
 const socialSelector = document.getElementById('socialSelector');
 const resizeHandle = document.getElementById('resizeHandle');
 const reelsPanel = document.getElementById('reelsPanel');
@@ -209,10 +208,7 @@ function startMonitoring() {
 // LLM selector change
 llmSelector.addEventListener('change', () => {
   const url = llmSelector.value;
-  const llm = Object.entries(LLM_SELECTORS).find(([domain]) => url.includes(domain));
-
   llmView.src = url;
-  llmLabel.textContent = llm ? llm[1].name : 'Chat';
 });
 
 // Social platform selector change
