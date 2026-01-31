@@ -326,12 +326,17 @@
         position: relative;
         background: #000;
         overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
       }
 
       #reelsmax-panel .social-frame {
-        width: 100%;
+        width: 375px;
         height: 100%;
+        min-height: 667px;
         border: none;
+        transform-origin: top center;
       }
 
       #reelsmax-panel .pause-overlay {
