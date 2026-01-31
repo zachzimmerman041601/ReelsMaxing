@@ -328,15 +328,22 @@
         overflow: hidden;
         display: flex;
         justify-content: center;
-        align-items: flex-start;
+        align-items: center;
+      }
+
+      #reelsmax-panel .phone-wrapper {
+        width: 360px;
+        height: 640px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        background: #000;
       }
 
       #reelsmax-panel .social-frame {
-        width: 375px;
-        height: 100%;
-        min-height: 667px;
+        width: 360px;
+        height: 640px;
         border: none;
-        transform-origin: top center;
       }
 
       #reelsmax-panel .pause-overlay {
@@ -439,13 +446,15 @@
 
       <div class="frame-container">
         <div class="loading" id="reelsmax-loading" style="display: none;">Loading...</div>
-        <iframe
-          class="social-frame"
-          id="reelsmax-iframe"
-          src="about:blank"
-          data-saved-src="${currentSocialUrl}"
-          allow="autoplay; fullscreen; encrypted-media"
-        ></iframe>
+        <div class="phone-wrapper">
+          <iframe
+            class="social-frame"
+            id="reelsmax-iframe"
+            src="about:blank"
+            data-saved-src="${currentSocialUrl}"
+            allow="autoplay; fullscreen; encrypted-media"
+          ></iframe>
+        </div>
 
         <div class="pause-overlay" id="reelsmax-overlay">
           <div class="pause-icon">
