@@ -433,11 +433,12 @@
       </div>
 
       <div class="frame-container">
-        <div class="loading" id="reelsmax-loading">Loading...</div>
+        <div class="loading" id="reelsmax-loading" style="display: none;">Loading...</div>
         <iframe
           class="social-frame"
           id="reelsmax-iframe"
-          src="${currentSocialUrl}"
+          src="about:blank"
+          data-saved-src="${currentSocialUrl}"
           allow="autoplay; fullscreen; encrypted-media"
         ></iframe>
 
@@ -556,9 +557,20 @@
     currentPlatform = value;
     currentSocialUrl = url;
 
+    const iframe = document.getElementById('reelsmax-iframe');
+    const overlay = document.getElementById('reelsmax-overlay');
+    const isPlaying = !overlay || !overlay.classList.contains('visible');
+
     document.getElementById('reelsmax-selected-label').textContent = label;
-    document.getElementById('reelsmax-loading').style.display = 'block';
-    document.getElementById('reelsmax-iframe').src = url;
+
+    // Save the new URL
+    iframe.dataset.savedSrc = url;
+
+    // Only load immediately if currently playing (not paused)
+    if (isPlaying) {
+      document.getElementById('reelsmax-loading').style.display = 'block';
+      iframe.src = url;
+    }
 
     // Update selected state
     document.querySelectorAll('#reelsmax-dropdown .select-option').forEach(opt => {
@@ -597,24 +609,41 @@
     const overlay = document.getElementById('reelsmax-overlay');
     const dot = document.getElementById('reelsmax-status-dot');
     const text = document.getElementById('reelsmax-status-text');
+    const iframe = document.getElementById('reelsmax-iframe');
+
     if (overlay) overlay.classList.add('visible');
     if (dot) {
       dot.classList.remove('generating');
       dot.classList.add('paused');
     }
     if (text) text.textContent = 'Paused';
+
+    // Actually pause the content by clearing the iframe src
+    if (iframe && iframe.src !== 'about:blank') {
+      iframe.dataset.savedSrc = iframe.src;
+      iframe.src = 'about:blank';
+    }
   }
 
   function hidePauseOverlay() {
     const overlay = document.getElementById('reelsmax-overlay');
     const dot = document.getElementById('reelsmax-status-dot');
     const text = document.getElementById('reelsmax-status-text');
+    const iframe = document.getElementById('reelsmax-iframe');
+    const loading = document.getElementById('reelsmax-loading');
+
     if (overlay) overlay.classList.remove('visible');
     if (dot) {
       dot.classList.remove('paused');
       dot.classList.add('generating');
     }
     if (text) text.textContent = 'Generating...';
+
+    // Restore the iframe content
+    if (iframe && iframe.dataset.savedSrc) {
+      if (loading) loading.style.display = 'block';
+      iframe.src = iframe.dataset.savedSrc;
+    }
   }
 
   function updateIndicator() {
