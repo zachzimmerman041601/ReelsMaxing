@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ReelsMaxing</title>
+  <style>
+    :root {
+      --background: #ffffff;
+      --foreground: #0a0a0a;
+      --card: #ffffff;
+      --primary: #171717;
+      --muted: #f5f5f5;
+      --muted-foreground: #737373;
+      --border: #e5e5e5;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100%;
+      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      flex-shrink: 0;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: rgba(23, 23, 23, 0.1);
+      overflow: hidden;
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .app-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .status-section {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .status-dot.ready {
+      background: #10b981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+
+    .status-dot.generating {
+      background: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .status-dot.paused {
+      background: #f87171;
+      box-shadow: 0 0 6px rgba(248, 113, 113, 0.6);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-text {
+      font-size: 11px;
+      color: var(--muted-foreground);
+    }
+
+    .selector-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(245, 245, 245, 0.3);
+      flex-shrink: 0;
+    }
+
+    .selector-icon {
+      color: var(--muted-foreground);
+    }
+
+    .select-wrapper {
+      position: relative;
+      flex: 1;
+    }
+
+    .select-button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 6px 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .select-button:hover {
+      background: var(--muted);
+    }
+
+    .select-chevron {
+      transition: transform 0.2s;
+    }
+
+    .select-button.open .select-chevron {
+      transform: rotate(180deg);
+    }
+
+    .select-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 100;
+      display: none;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .select-dropdown.open {
+      display: block;
+    }
+
+    .select-option {
+      display: flex;
+      align-items: center;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.15s;
+    }
+
+    .select-option:hover {
+      background: var(--muted);
+    }
+
+    .select-option.selected {
+      background: rgba(245, 245, 245, 0.5);
+    }
+
+    .option-check {
+      width: 16px;
+      margin-right: 8px;
+    }
+
+    .option-check svg {
+      display: none;
+    }
+
+    .select-option.selected .option-check svg {
+      display: block;
+    }
+
+    .frame-container {
+      flex: 1;
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .social-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .pause-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .pause-overlay.visible {
+      display: flex;
+    }
+
+    .pause-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(23, 23, 23, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .pause-icon svg {
+      width: 32px;
+      height: 32px;
+      color: var(--primary);
+    }
+
+    .pause-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .pause-subtitle {
+      font-size: 13px;
+      color: var(--muted-foreground);
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo-section">
+      <div class="logo">
+        <img src="ReelsMax_logo.jpg" alt="ReelsMaxing">
+      </div>
+      <span class="app-name">ReelsMaxing</span>
+    </div>
+    <div class="status-section">
+      <div class="status-dot paused" id="statusDot"></div>
+      <span class="status-text" id="statusText">Paused</span>
+    </div>
+  </div>
+
+  <div class="selector-bar">
+    <svg class="selector-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+    </svg>
+    <div class="select-wrapper">
+      <button class="select-button" id="selectButton">
+        <span id="selectedLabel">Instagram</span>
+        <svg class="select-chevron" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+      <div class="select-dropdown" id="selectDropdown"></div>
+    </div>
+  </div>
+
+  <div class="frame-container">
+    <div class="loading" id="loading">Loading...</div>
+    <iframe
+      class="social-frame"
+      id="socialFrame"
+      src="https://www.instagram.com/reels/"
+      allow="autoplay; fullscreen; encrypted-media"
+      sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"
+    ></iframe>
+
+    <div class="pause-overlay" id="pauseOverlay">
+      <div class="pause-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h2 class="pause-title">AI Response Ready!</h2>
+      <p class="pause-subtitle">Read the response in the chat. Generate a new prompt to continue watching.</p>
+    </div>
+  </div>
+
+  <script src="reels-popup.js"></script>
+</body>
+</html>

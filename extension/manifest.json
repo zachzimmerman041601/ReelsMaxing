@@ -1,0 +1,70 @@
+{
+  "manifest_version": 3,
+  "name": "ReelsMaxing",
+  "version": "1.0.0",
+  "description": "Watch social media while AI generates, auto-pause when response is ready",
+  "permissions": [
+    "tabs",
+    "storage",
+    "scripting",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://*.instagram.com/*",
+    "https://*.tiktok.com/*",
+    "https://*.youtube.com/*",
+    "https://*.x.com/*",
+    "https://*.reddit.com/*",
+    "https://*.snapchat.com/*",
+    "https://*.facebook.com/*",
+    "<all_urls>"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*"
+      ],
+      "js": ["content-llm.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "ReelsMaxing - Click to open"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["ReelsMax_logo.jpg"],
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*", "https://claude.ai/*", "https://gemini.google.com/*"]
+    }
+  ]
+}
