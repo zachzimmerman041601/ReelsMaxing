@@ -328,22 +328,21 @@
         overflow: hidden;
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: stretch;
       }
 
       #reelsmax-panel .phone-wrapper {
-        width: 360px;
-        height: 640px;
-        border-radius: 20px;
+        width: 100%;
+        height: 100%;
         overflow: hidden;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
         background: #000;
       }
 
       #reelsmax-panel .social-frame {
-        width: 360px;
-        height: 640px;
+        width: 100%;
+        height: 100%;
         border: none;
+        display: block;
       }
 
       #reelsmax-panel .pause-overlay {
