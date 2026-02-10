@@ -9,6 +9,7 @@
   let reelsPanel = null;
   let isPanelOpen = false;
   let isDropdownOpen = false;
+  let scalePhoneHandler = null;
 
   const SOCIAL_OPTIONS = [
     { value: "instagram", label: "Instagram", url: "https://www.instagram.com/reels/" },
@@ -326,21 +327,22 @@
         position: relative;
         background: #000;
         overflow: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: stretch;
       }
 
       #reelsmax-panel .phone-wrapper {
-        width: 100%;
-        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 375px;
+        height: 812px;
         overflow: hidden;
         background: #000;
+        transform-origin: top left;
       }
 
       #reelsmax-panel .social-frame {
-        width: 100%;
-        height: 100%;
+        width: 375px;
+        height: 812px;
         border: none;
         display: block;
       }
@@ -482,6 +484,35 @@
     // Close dropdown on outside click
     document.addEventListener('click', handleOutsideClick);
 
+    // Scale phone to fit the frame container
+    function scalePhone() {
+      const container = reelsPanel.querySelector('.frame-container');
+      const phoneWrapper = reelsPanel.querySelector('.phone-wrapper');
+      if (!container || !phoneWrapper) return;
+
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      const phoneWidth = 375;
+      const phoneHeight = 812;
+
+      const scaleX = containerWidth / phoneWidth;
+      const scaleY = containerHeight / phoneHeight;
+      const scale = Math.min(scaleX, scaleY);
+
+      phoneWrapper.style.transform = `scale(${scale})`;
+
+      // Center the phone in the container
+      const scaledWidth = phoneWidth * scale;
+      const scaledHeight = phoneHeight * scale;
+      phoneWrapper.style.left = `${(containerWidth - scaledWidth) / 2}px`;
+      phoneWrapper.style.top = `${(containerHeight - scaledHeight) / 2}px`;
+    }
+
+    // Scale on load and resize
+    requestAnimationFrame(scalePhone);
+    scalePhoneHandler = scalePhone;
+    window.addEventListener('resize', scalePhoneHandler);
+
     // Add class to enable page width constraint
     document.documentElement.classList.add('reelsmax-active');
 
@@ -603,6 +634,10 @@
     const pageStyle = document.getElementById('reelsmax-page-style');
     if (pageStyle) pageStyle.remove();
 
+    if (scalePhoneHandler) {
+      window.removeEventListener('resize', scalePhoneHandler);
+      scalePhoneHandler = null;
+    }
     document.removeEventListener('click', handleOutsideClick);
     document.documentElement.classList.remove('reelsmax-active');
     isPanelOpen = false;
