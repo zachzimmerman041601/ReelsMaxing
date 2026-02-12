@@ -12,7 +12,7 @@
   let scalePhoneHandler = null;
 
   const SOCIAL_OPTIONS = [
-    { value: "instagram", label: "Instagram", url: "https://www.instagram.com/reels/" },
+    { value: "instagram", label: "Instagram", url: "https://www.instagram.com/" },
     { value: "tiktok", label: "TikTok", url: "https://www.tiktok.com/foryou" },
     { value: "youtube", label: "YouTube Shorts", url: "https://m.youtube.com/shorts" },
     { value: "twitter", label: "X (Twitter)", url: "https://mobile.x.com/home" },
