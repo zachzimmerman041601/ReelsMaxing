@@ -14,10 +14,10 @@
   const SOCIAL_OPTIONS = [
     { value: "instagram", label: "Instagram", url: "https://www.instagram.com/reels/" },
     { value: "tiktok", label: "TikTok", url: "https://www.tiktok.com/foryou" },
-    { value: "youtube", label: "YouTube Shorts", url: "https://www.youtube.com/shorts" },
-    { value: "twitter", label: "X (Twitter)", url: "https://x.com/home" },
+    { value: "youtube", label: "YouTube Shorts", url: "https://m.youtube.com/shorts" },
+    { value: "twitter", label: "X (Twitter)", url: "https://mobile.x.com/home" },
     { value: "reddit", label: "Reddit", url: "https://www.reddit.com" },
-    { value: "facebook", label: "Facebook", url: "https://www.facebook.com/reel/" }
+    { value: "facebook", label: "Facebook", url: "https://m.facebook.com/reel/" }
   ];
 
   let currentPlatform = 'instagram';
