@@ -12,13 +12,12 @@
   let scalePhoneHandler = null;
 
   const SOCIAL_OPTIONS = [
-    { value: "instagram", label: "Instagram", url: "https://www.instagram.com/" },
     { value: "tiktok", label: "TikTok", url: "https://www.tiktok.com/foryou" },
     { value: "youtube", label: "YouTube Shorts", url: "https://m.youtube.com/shorts" },
     { value: "reddit", label: "Reddit", url: "https://www.reddit.com" }
   ];
 
-  let currentPlatform = 'instagram';
+  let currentPlatform = 'tiktok';
   let currentSocialUrl = SOCIAL_OPTIONS[0].url;
 
   const GENERATION_SELECTORS = {
@@ -434,7 +433,7 @@
         </svg>
         <div class="select-wrapper">
           <button class="select-button" id="reelsmax-select-btn">
-            <span id="reelsmax-selected-label">Instagram</span>
+            <span id="reelsmax-selected-label">TikTok</span>
             <svg class="select-chevron" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
             </svg>
