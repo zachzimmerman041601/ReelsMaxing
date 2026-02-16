@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <title>ReelsMaxing - Watch reels while AI thinks</title>
+  <meta name="description" content="A Chrome extension that lets you watch TikTok, YouTube Shorts, Instagram, and Reddit in a side panel while using AI chatbots like ChatGPT, Claude, and Gemini.">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #111111;
+      --fg: #ebebeb;
+      --card: #1a1a1a;
+      --border: #2a2a2a;
+      --muted: #888888;
+      --primary: #34d399;
+      --primary-dark: #0c0c0c;
+      --secondary: #1f1f1f;
+      --secondary-fg: #d4d4d4;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    .container { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Hero ───────────────────────────────────── */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 96px 0 80px;
+      text-align: center;
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      opacity: 0.03;
+      background-image:
+        linear-gradient(rgba(52,211,153,0.5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(52,211,153,0.5) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      opacity: 0.08;
+      background: radial-gradient(ellipse at center, rgba(52,211,153,1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero .container { position: relative; }
+
+    .brand { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 32px; }
+    .brand-name { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+
+    .hero h1 {
+      font-size: clamp(2.25rem, 6vw, 4.25rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      text-wrap: balance;
+    }
+
+    .hero-sub {
+      max-width: 560px;
+      margin: 24px auto 0;
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: opacity 0.15s, background 0.15s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary { background: var(--primary); color: var(--primary-dark); }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-secondary { background: var(--secondary); color: var(--secondary-fg); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: #262626; }
+
+    .btn svg { width: 16px; height: 16px; }
+
+    /* ── Browser Mockup ──────────────────────────── */
+    .browser {
+      margin: 64px auto 0;
+      max-width: 760px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(52,211,153,0.06);
+    }
+
+    .browser-chrome {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(31,31,31,0.5);
+    }
+
+    .browser-dots { display: flex; gap: 6px; }
+    .browser-dots span { display: block; width: 12px; height: 12px; border-radius: 50%; background: rgba(136,136,136,0.2); }
+
+    .browser-url {
+      flex: 1;
+      margin: 0 32px;
+      max-width: 400px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: rgba(17,17,17,0.8);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .browser-content { display: flex; min-height: 280px; }
+
+    .chat-area { flex: 1; padding: 24px 32px; display: flex; flex-direction: column; justify-content: space-between; }
+
+    .chat-messages { display: flex; flex-direction: column; gap: 16px; }
+
+    .msg { display: flex; align-items: flex-start; gap: 12px; }
+
+    .msg-avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600;
+    }
+
+    .msg-avatar-user { background: var(--secondary); color: var(--muted); }
+    .msg-avatar-ai { background: rgba(52,211,153,0.15); color: var(--primary); }
+
+    .msg-bubble {
+      background: var(--secondary);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--secondary-fg);
+      max-width: 280px;
+    }
+
+    .msg-skeleton { display: flex; flex-direction: column; gap: 6px; }
+
+    .skeleton-line {
+      height: 10px;
+      border-radius: 4px;
+      background: rgba(136,136,136,0.08);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .skeleton-line:nth-child(1) { width: 192px; }
+    .skeleton-line:nth-child(2) { width: 256px; animation-delay: 150ms; }
+    .skeleton-line:nth-child(3) { width: 160px; animation-delay: 300ms; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    .chat-input {
+      margin-top: 24px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Side panel */
+    .side-panel {
+      width: 160px;
+      border-left: 1px solid var(--border);
+      background: rgba(17,17,17,0.5);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .side-header {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .side-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--primary);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .side-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+    }
+
+    .side-phone-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; }
+
+    .side-phone {
+      width: 100%;
+      aspect-ratio: 9/16;
+      border-radius: 8px;
+      background: var(--secondary);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .side-phone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(52,211,153,0.08) 0%, transparent 50%);
+    }
+
+    .side-phone svg, .side-phone span { position: relative; }
+    .side-phone svg { color: var(--primary); }
+    .side-phone span { font-size: 9px; color: var(--muted); font-weight: 500; }
+
+    /* ── Sections ─────────────────────────────────── */
+    .section { border-top: 1px solid var(--border); padding: 96px 0; }
+
+    .section-header { text-align: center; margin-bottom: 64px; }
+
+    .section-label {
+      font-size: 13px; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--primary); margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+      font-weight: 700; letter-spacing: -0.02em; text-wrap: balance;
+    }
+
+    /* ── Steps ─────────────────────────────────────── */
+    .steps { display: grid; gap: 24px; }
+
+    .step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      transition: border-color 0.2s;
+    }
+
+    .step:hover { border-color: rgba(52,211,153,0.3); }
+
+    .step-top { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+
+    .step-num {
+      font-size: 28px; font-weight: 700; font-family: monospace;
+      color: rgba(52,211,153,0.2);
+    }
+
+    .step-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: rgba(52,211,153,0.1);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .step-icon svg { width: 20px; height: 20px; color: var(--primary); }
+
+    .step h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .step p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* ── Features ──────────────────────────────────── */
+    .features { display: grid; gap: 24px; }
+
+    .feature {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      transition: border-color 0.2s;
+    }
+
+    .feature:hover { border-color: rgba(52,211,153,0.3); }
+
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: rgba(52,211,153,0.1);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon svg { width: 20px; height: 20px; color: var(--primary); }
+
+    .feature h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .feature p { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .tag {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px; border-radius: 6px;
+      background: var(--secondary);
+      font-size: 12px; font-weight: 500; color: var(--secondary-fg);
+    }
+
+    /* ── Footer ──────────────────────────────────── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+    }
+
+    .footer .container {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px;
+    }
+
+    .footer-brand { display: flex; align-items: center; gap: 8px; }
+    .footer-brand span { font-size: 14px; font-weight: 500; }
+    .footer-sub { font-size: 12px; color: var(--muted); }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (min-width: 640px) {
+      .hero { padding: 128px 0 112px; }
+      .brand-name { font-size: 28px; }
+      .hero-sub { font-size: 20px; }
+      .steps { grid-template-columns: repeat(3, 1fr); }
+      .features { grid-template-columns: repeat(2, 1fr); }
+      .browser-content { min-height: 340px; }
+      .side-panel { width: 180px; }
+      .footer .container { flex-direction: row; justify-content: space-between; }
+    }
+
+    @media (max-width: 639px) {
+      .side-panel { width: 120px; }
+      .chat-area { padding: 16px; }
+      .browser-url { margin: 0 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="container">
+      <div class="brand">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="48" height="48" rx="12" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
+          <rect x="8" y="10" width="14" height="28" rx="3" fill="none" stroke="#34d399" stroke-width="2"/>
+          <line x1="8" y1="16" x2="22" y2="16" stroke="#34d399" stroke-width="1.5"/>
+          <rect x="10" y="19" width="10" height="3" rx="1" fill="#34d399" opacity="0.4"/>
+          <rect x="10" y="24" width="10" height="3" rx="1" fill="#34d399" opacity="0.3"/>
+          <rect x="10" y="29" width="7" height="3" rx="1" fill="#34d399" opacity="0.2"/>
+          <rect x="26" y="12" width="14" height="24" rx="3" fill="none" stroke="#34d399" stroke-width="2"/>
+          <polygon points="31,20 31,28 37,24" fill="#34d399" opacity="0.7"/>
+          <path d="M22 24 L26 24" stroke="#34d399" stroke-width="1.5" stroke-dasharray="2 2" opacity="0.5"/>
+        </svg>
+        <span class="brand-name">ReelsMaxing</span>
+      </div>
+
+      <h1>Watch reels while AI thinks</h1>
+
+      <p class="hero-sub">
+        A Chrome extension that plays your favorite social media in a side panel while AI chatbots generate responses. When the AI finishes, it auto-pauses so you can read.
+      </p>
+
+      <div class="btn-row">
+        <a href="DOWNLOAD_URL_HERE" class="btn btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Chrome Extension for Windows
+        </a>
+        <a href="DOWNLOAD_URL_HERE" class="btn btn-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Chrome Extension for macOS
+        </a>
+      </div>
+
+      <!-- Browser mockup -->
+      <div class="browser">
+        <div class="browser-chrome">
+          <div class="browser-dots"><span></span><span></span><span></span></div>
+          <div class="browser-url">chatgpt.com</div>
+          <div style="width:54px"></div>
+        </div>
+        <div class="browser-content">
+          <div class="chat-area">
+            <div class="chat-messages">
+              <div class="msg">
+                <div class="msg-avatar msg-avatar-user">U</div>
+                <div class="msg-bubble">Explain quantum computing</div>
+              </div>
+              <div class="msg">
+                <div class="msg-avatar msg-avatar-ai">AI</div>
+                <div class="msg-skeleton">
+                  <div class="skeleton-line"></div>
+                  <div class="skeleton-line"></div>
+                  <div class="skeleton-line"></div>
+                </div>
+              </div>
+            </div>
+            <div class="chat-input">Type a message...</div>
+          </div>
+          <div class="side-panel">
+            <div class="side-header">
+              <div class="side-dot"></div>
+              <span class="side-label">Playing</span>
+            </div>
+            <div class="side-phone-wrap">
+              <div class="side-phone">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><polygon points="8,5 8,19 19,12" fill="currentColor"/></svg>
+                <span>TikTok</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">How it works</p>
+        <h2 class="section-title">Three steps to never waste AI wait time</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-top">
+            <span class="step-num">01</span>
+            <div class="step-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+          </div>
+          <h3>Install the extension</h3>
+          <p>Download and install the ReelsMaxing Chrome extension. It takes less than a minute to set up.</p>
+        </div>
+        <div class="step">
+          <div class="step-top">
+            <span class="step-num">02</span>
+            <div class="step-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+          </div>
+          <h3>Open any AI chatbot</h3>
+          <p>Navigate to ChatGPT, Claude, Gemini, or any supported AI chatbot in your browser.</p>
+        </div>
+        <div class="step">
+          <div class="step-top">
+            <span class="step-num">03</span>
+            <div class="step-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+          </div>
+          <h3>Click "Open ReelsMaxing"</h3>
+          <p>Start prompting and your social media plays automatically while the AI generates a response.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">Features</p>
+        <h2 class="section-title">Everything you need to multitask with AI</h2>
+      </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+          <h3>Smart auto-play and auto-pause</h3>
+          <p>Content plays while AI generates responses and automatically pauses when the AI finishes, so you never miss a word.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h3>Multiple platforms supported</h3>
+          <p>Browse TikTok, YouTube Shorts, Instagram Reels, and Reddit right inside your browser's side panel.</p>
+          <div class="tags">
+            <span class="tag">TikTok</span>
+            <span class="tag">YouTube Shorts</span>
+            <span class="tag">Instagram</span>
+            <span class="tag">Reddit</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="8" y="8" width="8" height="8" rx="1"/><path d="M4 12H2"/><path d="M22 12h-2"/><path d="M12 2v2"/><path d="M12 22v-2"/><path d="m17 3-2.5 2.5"/><path d="m7 21 2.5-2.5"/><path d="m3 7 2.5 2.5"/><path d="m21 17-2.5-2.5"/></svg>
+          </div>
+          <h3>Works with top AI chatbots</h3>
+          <p>Seamlessly integrates with ChatGPT, Claude, and Gemini. The extension detects when the AI is thinking.</p>
+          <div class="tags">
+            <span class="tag">ChatGPT</span>
+            <span class="tag">Claude</span>
+            <span class="tag">Gemini</span>
+          </div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <h3>Mobile phone-style viewer</h3>
+          <p>Social media content is displayed in a familiar vertical phone-style viewer, just like scrolling on your phone.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-brand">
+        <svg width="20" height="20" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="48" height="48" rx="12" fill="#1a1a1a" stroke="#2a2a2a" stroke-width="1"/>
+          <rect x="8" y="10" width="14" height="28" rx="3" fill="none" stroke="#34d399" stroke-width="2"/>
+          <line x1="8" y1="16" x2="22" y2="16" stroke="#34d399" stroke-width="1.5"/>
+          <rect x="26" y="12" width="14" height="24" rx="3" fill="none" stroke="#34d399" stroke-width="2"/>
+          <polygon points="31,20 31,28 37,24" fill="#34d399" opacity="0.7"/>
+        </svg>
+        <span>ReelsMaxing</span>
+      </div>
+      <p class="footer-sub">Built for productive procrastination.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
