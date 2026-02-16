@@ -15,9 +15,7 @@
     { value: "instagram", label: "Instagram", url: "https://www.instagram.com/" },
     { value: "tiktok", label: "TikTok", url: "https://www.tiktok.com/foryou" },
     { value: "youtube", label: "YouTube Shorts", url: "https://m.youtube.com/shorts" },
-    { value: "twitter", label: "X (Twitter)", url: "https://mobile.x.com/home" },
-    { value: "reddit", label: "Reddit", url: "https://www.reddit.com" },
-    { value: "facebook", label: "Facebook", url: "https://m.facebook.com/reel/" }
+    { value: "reddit", label: "Reddit", url: "https://www.reddit.com" }
   ];
 
   let currentPlatform = 'instagram';
